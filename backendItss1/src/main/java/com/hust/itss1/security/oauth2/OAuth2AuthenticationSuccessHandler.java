@@ -1,6 +1,7 @@
 package com.hust.itss1.security.oauth2;
 
 import com.hust.itss1.security.JwtUtils;
+import com.hust.itss1.security.UserDetailsImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -38,10 +41,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
-        String token = jwtUtils.generateTokenFromUsername(authentication.getName());
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String token = jwtUtils.generateTokenFromUsername(userDetails.getEmail());
 
         return UriComponentsBuilder.fromUriString(redirectUri)
                 .queryParam("token", token)
+                .queryParam("email", URLEncoder.encode(userDetails.getEmail(), StandardCharsets.UTF_8))
                 .build().toUriString();
     }
 }

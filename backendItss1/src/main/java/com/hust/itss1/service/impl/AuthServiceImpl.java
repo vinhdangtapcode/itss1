@@ -1,5 +1,6 @@
 package com.hust.itss1.service.impl;
 
+import com.hust.itss1.dto.request.ChangePasswordRequest;
 import com.hust.itss1.dto.request.LoginRequest;
 import com.hust.itss1.dto.request.SignupRequest;
 import com.hust.itss1.dto.response.JwtResponse;
@@ -64,6 +65,23 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         return new MessageResponse("User registered successfully!");
+    }
+
+    @Override
+    public MessageResponse changePassword(String email, ChangePasswordRequest changePasswordRequest) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Kiểm tra mật khẩu hiện tại
+        if (!encoder.matches(changePasswordRequest.getCurrentPassword(), user.getPassword())) {
+            return new MessageResponse("Error: Current password is incorrect!");
+        }
+
+        // Cập nhật mật khẩu mới
+        user.setPassword(encoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+
+        return new MessageResponse("Password changed successfully!");
     }
 }
 

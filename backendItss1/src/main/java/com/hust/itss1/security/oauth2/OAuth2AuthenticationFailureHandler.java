@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
@@ -20,8 +22,13 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
+        String errorMessage = exception.getLocalizedMessage();
+        if (errorMessage == null || errorMessage.isEmpty()) {
+            errorMessage = "Authentication failed";
+        }
+
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("error", exception.getLocalizedMessage())
+                .queryParam("error", URLEncoder.encode(errorMessage, StandardCharsets.UTF_8))
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

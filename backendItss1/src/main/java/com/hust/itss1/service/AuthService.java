@@ -1,5 +1,6 @@
 package com.hust.itss1.service;
 
+import com.hust.itss1.dto.request.ChangePasswordRequest;
 import com.hust.itss1.dto.request.LoginRequest;
 import com.hust.itss1.dto.request.SignupRequest;
 import com.hust.itss1.dto.response.JwtResponse;
@@ -9,5 +10,7 @@ public interface AuthService {
     JwtResponse authenticateUser(LoginRequest loginRequest);
 
     MessageResponse registerUser(SignupRequest signupRequest);
+
+    MessageResponse changePassword(String email, ChangePasswordRequest changePasswordRequest);
 }
 
