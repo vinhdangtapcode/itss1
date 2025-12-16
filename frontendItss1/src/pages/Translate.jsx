@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { translationAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import ProfileDropdown from '../components/ProfileDropdown';
 import './Translate.css';
 
 function Translate() {
@@ -10,6 +12,7 @@ function Translate() {
   const [translatedText, setTranslatedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleTranslate = async () => {
@@ -69,12 +72,14 @@ function Translate() {
 
   return (
     <div className="translate-container">
+      <ProfileDropdown />
+
       <header className="translate-header">
-        <h1>JP ↔️ VN AI Translator</h1>
+        <h1>{t('appTitle')}</h1>
         <div className="user-info">
           <span>👤 {user?.email}</span>
           <button onClick={handleLogout} className="btn-logout">
-            Đăng xuất
+            {t('logout')}
           </button>
         </div>
       </header>
@@ -82,12 +87,12 @@ function Translate() {
       <div className="translator-box">
         <div className="input-section">
           <div className="section-header">
-            <h3>Tiếng Nhật</h3>
+            <h3>{t('japanese')}</h3>
           </div>
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="こんにちは、元気ですか？"
+            placeholder={t('inputPlaceholder')}
             rows="8"
           />
         </div>
@@ -98,18 +103,18 @@ function Translate() {
             disabled={isLoading}
             className="btn-translate"
           >
-            {isLoading ? '⏳ Đang dịch...' : 'Dịch'}
+            {isLoading ? t('translating') : t('translate')}
           </button>
         </div>
 
         <div className="output-section">
           <div className="section-header">
-            <h3>Tiếng Việt</h3>
+            <h3>{t('vietnamese')}</h3>
           </div>
           <textarea
             value={translatedText}
             readOnly
-            placeholder="Kết quả dịch sẽ hiển thị ở đây..."
+            placeholder={t('outputPlaceholder')}
             rows="8"
           />
         </div>
