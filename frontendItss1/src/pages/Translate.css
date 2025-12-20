@@ -6,7 +6,14 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Header */
+/* Position hamburger menu at absolute top-right of page */
+.translate-container>.profile-dropdown {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000;
+}
+
 .translate-header {
   background: var(--bg-primary);
   box-shadow: 0 1px 3px var(--shadow-color);

@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeftRight, LogOut, Maximize2, X, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 import { translationAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import ProfileDropdown from '../components/ProfileDropdown';
 import './Translate.css';
 
 // Popup Modal Component
@@ -92,7 +93,7 @@ function Translate() {
   const [expandedBox, setExpandedBox] = useState(null); // 'japanese' | 'context' | 'vietnamese' | 'analysis' | null
   const [historyHidden, setHistoryHidden] = useState(false);
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const loadHistory = async () => {
@@ -183,168 +184,51 @@ function Translate() {
 
   return (
     <div className="translate-container">
-      {/* Header */}
+      <ProfileDropdown />
+
       <header className="translate-header">
-        <div className="header-content">
-          <div className="header-left">
-            <ArrowLeftRight className="header-icon" />
-            <h1>JP ↔️ VN AI Translator</h1>
-          </div>
-          <div className="header-right">
-            <span className="user-email">{user?.email || 'user@example.com'}</span>
-            <button
-              onClick={toggleTheme}
-              className="btn-theme-toggle"
-              title={theme === 'light' ? 'Chế độ tối' : 'Chế độ sáng'}
-            >
-              {theme === 'light' ? <Moon className="theme-icon" /> : <Sun className="theme-icon" />}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="btn-logout"
-            >
-              <LogOut className="logout-icon" />
-              <span>Đăng xuất</span>
-            </button>
-          </div>
+        <h1>{t('appTitle')}</h1>
+        <div className="user-info">
+          <span>👤 {user?.email}</span>
+          <button onClick={handleLogout} className="btn-logout">
+            {t('logout')}
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="translate-main">
-        <div className="translator-box">
-          <div className="translator-grid">
-            {/* Left Side - Japanese Input */}
-            <div className="input-group">
-              <TextBoxWithExpand
-                label="Tiếng Nhật"
-                value={japaneseText}
-                onChange={(e) => setJapaneseText(e.target.value)}
-                placeholder="Nhập văn bản tiếng Nhật cần dịch..."
-                className="textarea-input"
-                onExpand={() => setExpandedBox('japanese')}
-              />
-
-              <TextBoxWithExpand
-                label="Ngữ cảnh"
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                placeholder="Nhập ngữ cảnh của câu nói (không bắt buộc)..."
-                className="textarea-input textarea-context"
-                onExpand={() => setExpandedBox('context')}
-              />
-            </div>
-
-            {/* Translate Button - Between columns */}
-            <div className="translate-button-desktop">
-              <button
-                onClick={handleTranslate}
-                disabled={isTranslating || !japaneseText.trim()}
-                className="btn-translate"
-              >
-                {isTranslating ? (
-                  <>
-                    <div className="spinner-small" />
-                    <span>Đang dịch...</span>
-                  </>
-                ) : (
-                  <>
-
-                    <span>Dịch</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Mobile Translate Button */}
-            <div className="translate-button-mobile">
-              <button
-                onClick={handleTranslate}
-                disabled={isTranslating || !japaneseText.trim()}
-                className="btn-translate btn-translate-mobile"
-              >
-                {isTranslating ? (
-                  <>
-                    <div className="spinner-small" />
-                    <span>Đang dịch...</span>
-                  </>
-                ) : (
-                  <>
-                    <ArrowLeftRight className="translate-icon" />
-                    <span>Dịch</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Right Side - Vietnamese Output */}
-            <div className="output-group">
-              <TextBoxWithExpand
-                label="Tiếng Việt"
-                value={vietnameseText}
-                onChange={() => { }}
-                placeholder="Kết quả dịch sẽ hiển thị tại đây..."
-                className="textarea-output"
-                readOnly={true}
-                onExpand={() => setExpandedBox('vietnamese')}
-              />
-
-              <TextBoxWithExpand
-                label="Phân tích"
-                value={analysis}
-                onChange={(e) => setAnalysis(e.target.value)}
-                placeholder="Nhập phân tích (không bắt buộc)..."
-                className="textarea-input textarea-context"
-                onExpand={() => setExpandedBox('analysis')}
-              />
-            </div>
+      <div className="translator-box">
+        <div className="input-section">
+          <div className="section-header">
+            <h3>{t('japanese')}</h3>
           </div>
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={t('inputPlaceholder')}
+            rows="8"
+          />
         </div>
 
-        {/* History Section */}
-        <div className="history-section">
-          <div className="history-header">
-            <h2>Lịch sử dịch</h2>
-            <button
-              className="btn-history-toggle"
-              onClick={() => setHistoryHidden(!historyHidden)}
-            >
-              {historyHidden ? (
-                <>
-                  <Eye className="toggle-icon" />
-                  <span>Hiện</span>
-                </>
-              ) : (
-                <>
-                  <EyeOff className="toggle-icon" />
-                  <span>Ẩn</span>
-                </>
-              )}
-            </button>
+        <div className="translate-button-wrapper">
+          <button
+            onClick={handleTranslate}
+            disabled={isLoading}
+            className="btn-translate"
+          >
+            {isLoading ? t('translating') : t('translate')}
+          </button>
+        </div>
+
+        <div className="output-section">
+          <div className="section-header">
+            <h3>{t('vietnamese')}</h3>
           </div>
-          {!historyHidden && (
-            <>
-              {loadingHistory ? (
-                <div className="history-loading">Đang tải lịch sử...</div>
-              ) : history.length === 0 ? (
-                <div className="history-empty">Chưa có lịch sử dịch</div>
-              ) : (
-                <div className="history-list">
-                  {history.map((item) => (
-                    <div
-                      key={item.id}
-                      className="history-item"
-                      onClick={() => handleHistoryItemClick(item)}
-                    >
-                      <div className="history-content">
-                        <span className="history-text">{item.originalText}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+          <textarea
+            value={translatedText}
+            readOnly
+            placeholder={t('outputPlaceholder')}
+            rows="8"
+          />
         </div>
       </main>
 

@@ -19,9 +19,20 @@ function OAuth2Redirect() {
     }
 
     if (token) {
-      // Lưu token vào localStorage
-      // Lưu ý: Backend cần trả về thêm thông tin user hoặc decode từ JWT
-      const userData = { email: 'oauth-user', id: null, roles: ['ROLE_USER'] };
+      // Lấy email từ URL parameter
+      const email = searchParams.get('email');
+      let displayName = email || 'Người dùng';
+
+      // Nếu là Facebook (@facebook.com) thì chỉ hiển thị tên, còn Google thì giữ nguyên email
+      if (email && email.includes('@facebook.com')) {
+        displayName = email.split('@')[0];
+      }
+
+      const userData = {
+        email: displayName,
+        id: null,
+        roles: ['ROLE_USER']
+      };
       login(userData, token);
       navigate('/translate');
     } else {
