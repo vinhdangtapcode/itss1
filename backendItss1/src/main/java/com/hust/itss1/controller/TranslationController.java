@@ -13,6 +13,7 @@ import com.hust.itss1.entity.TranslationHistory;
 import com.hust.itss1.entity.User;
 import com.hust.itss1.repository.UserRepository;
 import com.hust.itss1.service.GeminiService;
+import com.hust.itss1.service.GeminiService.TranslationResult;
 import com.hust.itss1.service.TranslationHistoryService;
 import com.hust.itss1.security.UserDetailsImpl;
 
@@ -51,7 +52,10 @@ public class TranslationController {
             );
         }
 
-        String translatedText = geminiService.translateJapaneseToVietnamese(request.getText());
+        TranslationResult translationResult = geminiService.translateJapaneseToVietnamese(
+            request.getText(),
+            request.getContext()
+        );
 
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -59,7 +63,7 @@ public class TranslationController {
         translationHistoryService.saveTranslationHistory(
             user,
             request.getText(),
-            translatedText,
+            translationResult.getTranslation(),
             "ja", // Japanese
             "vi"  // Vietnamese
         );
@@ -68,7 +72,8 @@ public class TranslationController {
             TranslationResponse.builder()
                 .success(true)
                 .original(request.getText())
-                .translated(translatedText)
+                .translated(translationResult.getTranslation())
+                .contextAnalysis(translationResult.getContextAnalysis())
                 .username(userDetails.getUsername())
                 .message("Dịch thành công")
                 .build()
