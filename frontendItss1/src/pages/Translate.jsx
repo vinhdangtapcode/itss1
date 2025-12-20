@@ -1,73 +1,185 @@
 // src/pages/Translate.jsx
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeftRight, LogOut, Maximize2, X, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 import { translationAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import ProfileDropdown from '../components/ProfileDropdown';
 import './Translate.css';
 
+// Popup Modal Component
+function ExpandPopup({ title, value, onChange, onClose, readOnly = false }) {
+  // Close on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  return (
+    <div className="popup-overlay" onClick={onClose}>
+      <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+        <div className="popup-header">
+          <h3 className="popup-title">{title}</h3>
+          <button className="popup-close-btn" onClick={onClose}>
+            <X />
+          </button>
+        </div>
+        <div className="popup-body">
+          <textarea
+            className={`popup-textarea ${readOnly ? 'readonly' : ''}`}
+            value={value}
+            onChange={onChange}
+            readOnly={readOnly}
+            autoFocus
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Text Box with Expand Button Component
+function TextBoxWithExpand({ label, value, onChange, placeholder, className, readOnly = false, onExpand }) {
+  const textareaRef = useRef(null);
+  const wrapperRef = useRef(null);
+
+  // Use ResizeObserver to sync wrapper size with textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const wrapper = wrapperRef.current;
+    if (!textarea || !wrapper) return;
+
+    const observer = new ResizeObserver(() => {
+      wrapper.style.width = `${textarea.offsetWidth}px`;
+      wrapper.style.height = `${textarea.offsetHeight}px`;
+    });
+
+    observer.observe(textarea);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="input-field">
+      <label className="field-label">{label}</label>
+      <div className="text-box-wrapper" ref={wrapperRef}>
+        <button className="expand-btn" onClick={onExpand} title="Mở rộng">
+          <Maximize2 />
+        </button>
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={className}
+          readOnly={readOnly}
+        />
+      </div>
+    </div>
+  );
+}
+
 function Translate() {
-  const [inputText, setInputText] = useState('');
-  const [translatedText, setTranslatedText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [japaneseText, setJapaneseText] = useState('');
+  const [context, setContext] = useState('');
+  const [vietnameseText, setVietnameseText] = useState('');
+  const [analysis, setAnalysis] = useState('');
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [expandedBox, setExpandedBox] = useState(null); // 'japanese' | 'context' | 'vietnamese' | 'analysis' | null
+  const [historyHidden, setHistoryHidden] = useState(false);
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  const handleTranslate = async () => {
-    if (!inputText.trim()) {
-      alert('Vui lòng nhập văn bản cần dịch');
+  const loadHistory = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('Không có token, bỏ qua load history');
       return;
     }
 
-    setIsLoading(true);
-    setTranslatedText('');
+    try {
+      setLoadingHistory(true);
+      const response = await translationAPI.getHistory();
+      console.log('History response:', response);
+      console.log('History data:', response.data);
+      const historyData = Array.isArray(response.data) ? response.data : [];
+      console.log('History array:', historyData);
+      setHistory(historyData);
+    } catch (error) {
+      console.error('Lỗi khi tải lịch sử:', error);
+      console.error('Error response:', error.response);
+      // Nếu lỗi 401, không redirect (để tránh loop)
+      if (error.response?.status === 401) {
+        console.log('Token không hợp lệ, bỏ qua load history');
+      }
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    // Chỉ load history khi user đã được set
+    if (user) {
+      loadHistory();
+    }
+  }, [user]);
+
+  const handleTranslate = async () => {
+    if (!japaneseText.trim()) {
+      return;
+    }
+
+    setIsTranslating(true);
+    setVietnameseText('');
+    setAnalysis('');
 
     try {
-      // DEBUG: Log token và request
       const token = localStorage.getItem('token');
-      console.log('🔍 DEBUG - Token trong localStorage:', token);
-      console.log('🔍 DEBUG - User từ context:', user);
-
       if (!token) {
-        setTranslatedText('⚠️ Lỗi: Chưa đăng nhập. Vui lòng đăng nhập lại.');
+        setVietnameseText('⚠️ Lỗi: Chưa đăng nhập. Vui lòng đăng nhập lại.');
+        setIsTranslating(false);
         return;
       }
 
-      console.log('🔍 DEBUG - Gọi API translate với text:', inputText);
-      const response = await translationAPI.translate(inputText);
-      console.log('🔍 DEBUG - Response từ API:', response);
+      const response = await translationAPI.translate(japaneseText, context);
+      const { translated, contextAnalysis } = response.data;
 
-      const { translated, message } = response.data;
-      console.log('🔍 DEBUG - Translated text:', translated);
+      setVietnameseText(translated);
+      setAnalysis(contextAnalysis || '');
 
-      setTranslatedText(translated);
-
-      if (message) {
-        console.log('🔍 DEBUG - Message:', message);
-      }
+      // Reload history after successful translation
+      loadHistory();
     } catch (error) {
-      console.error('❌ DEBUG - Lỗi khi dịch:', error);
-      console.error('❌ DEBUG - Error response:', error.response);
-      console.error('❌ DEBUG - Error status:', error.response?.status);
-      console.error('❌ DEBUG - Error data:', error.response?.data);
+      console.error('Lỗi khi dịch:', error);
 
       if (error.response?.status === 401) {
-        setTranslatedText('⚠️ Lỗi: Token không hợp lệ. Vui lòng đăng nhập lại.');
+        setVietnameseText('⚠️ Lỗi: Token không hợp lệ. Vui lòng đăng nhập lại.');
       } else if (error.response?.status === 403) {
-        setTranslatedText('⚠️ Lỗi: Không có quyền truy cập.');
+        setVietnameseText('⚠️ Lỗi: Không có quyền truy cập.');
       } else {
-        setTranslatedText(`⚠️ Lỗi dịch: ${error.response?.data?.message || error.message}`);
+        setVietnameseText(`⚠️ Lỗi dịch: ${error.response?.data?.message || error.message}`);
       }
     } finally {
-      setIsLoading(false);
+      setIsTranslating(false);
     }
   };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleHistoryItemClick = (item) => {
+    setJapaneseText(item.originalText || '');
+    setVietnameseText(item.translatedText || '');
+    // Scroll to top để người dùng thấy nội dung đã được điền
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -118,7 +230,42 @@ function Translate() {
             rows="8"
           />
         </div>
-      </div>
+      </main>
+
+      {/* Expand Popup Modal */}
+      {expandedBox === 'japanese' && (
+        <ExpandPopup
+          title="Tiếng Nhật"
+          value={japaneseText}
+          onChange={(e) => setJapaneseText(e.target.value)}
+          onClose={() => setExpandedBox(null)}
+        />
+      )}
+      {expandedBox === 'context' && (
+        <ExpandPopup
+          title="Ngữ cảnh"
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          onClose={() => setExpandedBox(null)}
+        />
+      )}
+      {expandedBox === 'vietnamese' && (
+        <ExpandPopup
+          title="Tiếng Việt"
+          value={vietnameseText}
+          onChange={() => { }}
+          onClose={() => setExpandedBox(null)}
+          readOnly={true}
+        />
+      )}
+      {expandedBox === 'analysis' && (
+        <ExpandPopup
+          title="Phân tích"
+          value={analysis}
+          onChange={(e) => setAnalysis(e.target.value)}
+          onClose={() => setExpandedBox(null)}
+        />
+      )}
     </div>
   );
 }

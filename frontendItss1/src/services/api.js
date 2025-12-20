@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8081';
 
 // Tạo axios instance
 const api = axios.create({
@@ -33,11 +33,22 @@ api.interceptors.response.use(
       // Chỉ redirect nếu ĐÃ có token (token expired)
       // KHÔNG redirect nếu đang login/signup (chưa có token)
       const token = localStorage.getItem('token');
-      if (token) {
-        // Token hết hạn -> xóa và redirect
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+      const user = localStorage.getItem('user');
+      
+      // Chỉ redirect nếu cả token và user đều tồn tại (nghĩa là đã login trước đó)
+      // Tránh redirect ngay sau khi login thành công
+      if (token && user) {
+        // Kiểm tra xem có phải là request từ trang translate không
+        // Nếu là request từ translate và bị 401, có thể là token chưa được set đúng
+        const currentPath = window.location.pathname;
+        
+        // Chỉ redirect nếu không phải đang ở trang login/signup
+        if (currentPath !== '/login' && currentPath !== '/signup') {
+          // Token hết hạn -> xóa và redirect
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
       }
       // Nếu chưa có token (đang login) -> không redirect, để component xử lý
     }
@@ -60,12 +71,21 @@ export const authAPI = {
   facebookLogin: () => {
     window.location.href = `${API_BASE_URL}/oauth2/authorize/facebook`;
   },
+
+  checkEmail: (email) =>
+    api.post('/api/auth/check-email', { email }),
+
+  resetPassword: (email, newPassword, confirmPassword) =>
+    api.post('/api/auth/reset-password', { email, newPassword, confirmPassword }),
 };
 
 // Translation API
 export const translationAPI = {
-  translate: (text) =>
-    api.post('/api/translate', { text }),
+  translate: (text, context) =>
+    api.post('/api/translate', { text, context }),
+
+  getHistory: () =>
+    api.get('/api/translate/history/all'),
 };
 
 export default api;

@@ -1,17 +1,20 @@
 // src/context/ThemeContext.jsx
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-const ThemeContext = createContext(null);
+const ThemeContext = createContext();
 
-// eslint-disable-next-line react/prop-types
-export const ThemeProvider = ({ children }) => {
+export function ThemeProvider({ children }) {
+    // Initialize from localStorage or default to 'light'
     const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'light';
+        const saved = localStorage.getItem('theme');
+        return saved || 'light';
     });
 
+    // Apply theme class to body and save to localStorage
     useEffect(() => {
+        document.body.classList.remove('light', 'dark');
+        document.body.classList.add(theme);
         localStorage.setItem('theme', theme);
-        document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
 
     const toggleTheme = () => {
@@ -21,16 +24,20 @@ export const ThemeProvider = ({ children }) => {
     const value = {
         theme,
         toggleTheme,
-        isDark: theme === 'dark',
+        isDark: theme === 'dark'
     };
 
-    return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
-};
+    return (
+        <ThemeContext.Provider value={value}>
+            {children}
+        </ThemeContext.Provider>
+    );
+}
 
-export const useTheme = () => {
+export function useTheme() {
     const context = useContext(ThemeContext);
     if (!context) {
-        throw new Error('useTheme must be used within ThemeProvider');
+        throw new Error('useTheme must be used within a ThemeProvider');
     }
     return context;
-};
+}

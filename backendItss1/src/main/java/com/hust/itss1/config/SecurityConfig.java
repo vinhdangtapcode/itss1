@@ -63,7 +63,7 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                .requestMatchers("/api/auth/**", "/oauth2/**", "/error").permitAll()
                 .requestMatchers("/api/translate/**").authenticated()
                 .anyRequest().authenticated()
             )

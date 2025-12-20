@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class TranslationResponse {
     private String original;
     private String translated;
+    private String contextAnalysis;
     private String username;
     private String message;
     private boolean success;

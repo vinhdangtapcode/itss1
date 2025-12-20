@@ -1,8 +1,10 @@
 package com.hust.itss1.service.impl;
 
-import com.hust.itss1.dto.request.ChangePasswordRequest;
+import com.hust.itss1.dto.request.ForgotPasswordRequest;
 import com.hust.itss1.dto.request.LoginRequest;
+import com.hust.itss1.dto.request.ResetPasswordRequest;
 import com.hust.itss1.dto.request.SignupRequest;
+import com.hust.itss1.dto.response.EmailCheckResponse;
 import com.hust.itss1.dto.response.JwtResponse;
 import com.hust.itss1.dto.response.MessageResponse;
 import com.hust.itss1.entity.User;
@@ -68,20 +70,35 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public MessageResponse changePassword(String email, ChangePasswordRequest changePasswordRequest) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public EmailCheckResponse checkEmailExists(ForgotPasswordRequest request) {
+        boolean exists = userRepository.existsByEmail(request.getEmail());
+        if (exists) {
+            return new EmailCheckResponse(true, "Email tồn tại trong hệ thống.");
+        } else {
+            return new EmailCheckResponse(false, "Email không tồn tại trong hệ thống.");
+        }
+    }
 
-        // Kiểm tra mật khẩu hiện tại
-        if (!encoder.matches(changePasswordRequest.getCurrentPassword(), user.getPassword())) {
-            return new MessageResponse("Error: Current password is incorrect!");
+    @Override
+    public MessageResponse resetPassword(ResetPasswordRequest request) {
+        // Kiểm tra email có tồn tại không
+        if (!userRepository.existsByEmail(request.getEmail())) {
+            return new MessageResponse("Error: Email không tồn tại trong hệ thống.");
+        }
+
+        // Kiểm tra mật khẩu mới và xác nhận mật khẩu có khớp không
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return new MessageResponse("Error: Mật khẩu mới và xác nhận mật khẩu không khớp.");
         }
 
         // Cập nhật mật khẩu mới
-        user.setPassword(encoder.encode(changePasswordRequest.getNewPassword()));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setPassword(encoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        return new MessageResponse("Password changed successfully!");
+        return new MessageResponse("Đặt lại mật khẩu thành công!");
     }
 }
 

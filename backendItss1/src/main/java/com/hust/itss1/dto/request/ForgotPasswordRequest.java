@@ -1,5 +1,6 @@
 package com.hust.itss1.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TranslationRequest {
-    @NotBlank(message = "Vui lòng nhập văn bản cần dịch")
-    private String text;
-    private String context;
+public class ForgotPasswordRequest {
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
+    private String email;
 }
 
