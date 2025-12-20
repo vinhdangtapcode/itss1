@@ -54,7 +54,7 @@ public class AuthController {
         if (messageResponse.getMessage().startsWith("Error")) {
             return ResponseEntity.badRequest().body(messageResponse);
         }
-
+        
         return ResponseEntity.ok(messageResponse);
     }
 

@@ -144,6 +144,40 @@ function Translate() {
     }
   }, [user]);
 
+  const loadHistory = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('Không có token, bỏ qua load history');
+      return;
+    }
+
+    try {
+      setLoadingHistory(true);
+      const response = await translationAPI.getHistory();
+      console.log('History response:', response);
+      console.log('History data:', response.data);
+      const historyData = Array.isArray(response.data) ? response.data : [];
+      console.log('History array:', historyData);
+      setHistory(historyData);
+    } catch (error) {
+      console.error('Lỗi khi tải lịch sử:', error);
+      console.error('Error response:', error.response);
+      // Nếu lỗi 401, không redirect (để tránh loop)
+      if (error.response?.status === 401) {
+        console.log('Token không hợp lệ, bỏ qua load history');
+      }
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    // Chỉ load history khi user đã được set
+    if (user) {
+      loadHistory();
+    }
+  }, [user]);
+
   const handleTranslate = async () => {
     if (!japaneseText.trim()) {
       return;
@@ -190,6 +224,13 @@ function Translate() {
     setVietnameseText(item.translatedText || '');
     setContext(item.userContext || '');
     setAnalysis(item.contextAnalysis || '');
+    // Scroll to top để người dùng thấy nội dung đã được điền
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleHistoryItemClick = (item) => {
+    setJapaneseText(item.originalText || '');
+    setVietnameseText(item.translatedText || '');
     // Scroll to top để người dùng thấy nội dung đã được điền
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
