@@ -138,17 +138,17 @@
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  resize: both;
-  min-height: 100px;
-  min-width: 200px;
+  resize: none;
+  height: 180px;
   box-sizing: border-box;
   transition: all 0.2s;
   background: var(--bg-primary);
   color: var(--text-primary);
+  overflow-y: auto;
 }
 
 .textarea-input {
-  height: 120px;
+  height: 180px;
 }
 
 .textarea-input:focus {
@@ -162,7 +162,7 @@
 }
 
 .textarea-output {
-  height: 120px;
+  height: 180px;
   background: var(--bg-secondary);
 }
 
@@ -327,11 +327,11 @@
 
   .textarea-input,
   .textarea-output {
-    height: 200px;
+    height: 150px;
   }
 
   .textarea-context {
-    height: 200px;
+    height: 100px;
   }
 
   .placeholder-spacer {
