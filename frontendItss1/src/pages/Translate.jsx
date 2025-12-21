@@ -5,6 +5,7 @@ import { ArrowLeftRight, LogOut, Maximize2, X, Sun, Moon, Eye, EyeOff } from 'lu
 import { translationAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import ProfileDropdown from '../components/ProfileDropdown';
 import './Translate.css';
 
@@ -94,6 +95,7 @@ function Translate() {
   const [historyHidden, setHistoryHidden] = useState(false);
   const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const loadHistory = async () => {
