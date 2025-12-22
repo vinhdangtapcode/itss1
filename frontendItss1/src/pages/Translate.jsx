@@ -91,6 +91,7 @@ function Translate() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedBox, setExpandedBox] = useState(null); // 'japanese' | 'context' | 'vietnamese' | 'analysis' | null
   const [historyHidden, setHistoryHidden] = useState(false);
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
   const { user } = useAuth();
   const { t } = useLanguage();
 
@@ -289,9 +290,10 @@ function Translate() {
               <TextBoxWithExpand
                 label={t('analysis')}
                 value={analysis}
-                onChange={(e) => setAnalysis(e.target.value)}
+                onChange={() => { }}
                 placeholder={t('analysisPlaceholder')}
-                className="textarea-input textarea-context"
+                className="textarea-output textarea-context"
+                readOnly={true}
                 onExpand={() => setExpandedBox('analysis')}
               />
             </div>
@@ -319,8 +321,23 @@ function Translate() {
               )}
             </button>
           </div>
+
           {!historyHidden && (
             <>
+              {/* Auto-delete notice */}
+              {!noticeDismissed && (
+                <div className="history-auto-delete-notice">
+                  <span className="notice-text">{t('historyAutoDeleteNotice')}</span>
+                  <button
+                    className="notice-close-btn"
+                    onClick={() => setNoticeDismissed(true)}
+                    title="Đóng"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
               {loadingHistory ? (
                 <div className="history-loading">{t('loadingHistory')}</div>
               ) : history.length === 0 ? (
@@ -388,8 +405,9 @@ function Translate() {
         <ExpandPopup
           title={t('analysis')}
           value={analysis}
-          onChange={(e) => setAnalysis(e.target.value)}
+          onChange={() => { }}
           onClose={() => setExpandedBox(null)}
+          readOnly={true}
         />
       )}
     </div>

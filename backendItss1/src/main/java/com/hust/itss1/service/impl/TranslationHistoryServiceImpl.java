@@ -5,13 +5,17 @@ import com.hust.itss1.entity.User;
 import com.hust.itss1.repository.TranslationHistoryRepository;
 import com.hust.itss1.service.TranslationHistoryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TranslationHistoryServiceImpl implements TranslationHistoryService {
@@ -20,9 +24,9 @@ public class TranslationHistoryServiceImpl implements TranslationHistoryService 
 
     @Override
     @Transactional
-    public TranslationHistory saveTranslationHistory(User user, String originalText, String translatedText,
-                                                     String sourceLanguage, String targetLanguage,
-                                                     String userContext, String contextAnalysis) {
+    public void saveTranslationHistory(User user, String originalText, String translatedText,
+                                       String sourceLanguage, String targetLanguage,
+                                       String userContext, String contextAnalysis) {
         TranslationHistory history = TranslationHistory.builder()
                 .user(user)
                 .originalText(originalText)
@@ -33,7 +37,7 @@ public class TranslationHistoryServiceImpl implements TranslationHistoryService 
                 .contextAnalysis(contextAnalysis)
                 .build();
 
-        return translationHistoryRepository.save(history);
+        translationHistoryRepository.save(history);
     }
 
     @Override
@@ -55,9 +59,40 @@ public class TranslationHistoryServiceImpl implements TranslationHistoryService 
     }
 
     @Override
+    @Transactional
+    public long deleteOldTranslationHistories(LocalDateTime cutoff, int batchSize) {
+        long totalDeleted = 0;
+        long totalToDelete = translationHistoryRepository.countByCreatedAtBefore(cutoff);
+
+        if (totalToDelete == 0) {
+            log.info("Không có bản ghi lịch sử dịch nào cần xóa (trước thời điểm {})", cutoff);
+            return 0;
+        }
+
+        log.info("Bắt đầu xóa {} bản ghi lịch sử dịch cũ hơn {} theo batch (batch size: {})",
+                totalToDelete, cutoff, batchSize);
+
+        List<Long> idsToDelete;
+        do {
+            // Lấy danh sách ID cần xóa theo batch
+            idsToDelete = translationHistoryRepository.findIdsByCreatedAtBefore(
+                    cutoff, PageRequest.of(0, batchSize));
+
+            if (!idsToDelete.isEmpty()) {
+                translationHistoryRepository.deleteByIdIn(idsToDelete);
+                totalDeleted += idsToDelete.size();
+                log.debug("Đã xóa batch {} bản ghi. Tổng đã xóa: {}/{}",
+                        idsToDelete.size(), totalDeleted, totalToDelete);
+            }
+        } while (!idsToDelete.isEmpty());
+
+        log.info("Hoàn thành xóa lịch sử dịch: đã xóa {} bản ghi", totalDeleted);
+        return totalDeleted;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public long countUserTranslations(Long userId) {
         return translationHistoryRepository.countByUserId(userId);
     }
 }
-

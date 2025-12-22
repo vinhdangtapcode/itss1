@@ -52,6 +52,7 @@ const translations = {
         hide: 'Ẩn',
         loadingHistory: 'Đang tải lịch sử...',
         noHistory: 'Chưa có lịch sử dịch',
+        historyAutoDeleteNotice: 'Lịch sử dịch sẽ tự động xóa sau 30 ngày.',
 
         // Home
         homeTitle: 'Dịch Nhật - Việt với AI',
@@ -123,6 +124,7 @@ const translations = {
         hide: '非表示',
         loadingHistory: '履歴を読み込んでいます...',
         noHistory: '翻訳履歴がありません',
+        historyAutoDeleteNotice: '翻訳履歴は30日後に自動的に削除されます。',
 
         // Home
         homeTitle: '日本語 - ベトナム語 AI翻訳',
@@ -194,6 +196,7 @@ const translations = {
         hide: 'Hide',
         loadingHistory: 'Loading history...',
         noHistory: 'No translation history',
+        historyAutoDeleteNotice: 'Translation history will be automatically deleted after 30 days.',
 
         // Home
         homeTitle: 'Japanese - Vietnamese AI Translation',
