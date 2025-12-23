@@ -83,15 +83,6 @@ function ProfileDropdown() {
                                 >
                                     🇯🇵 日本語
                                 </button>
-                                <button
-                                    className={`lang-btn ${language === 'en' ? 'active' : ''}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleLanguageChange('en');
-                                    }}
-                                >
-                                    🇬🇧 English
-                                </button>
                             </div>
                         </div>
 

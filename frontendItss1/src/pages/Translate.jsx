@@ -95,15 +95,59 @@ function Translate() {
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  // Hàm làm sạch text từ markdown code blocks
+  // Hàm làm sạch text từ markdown code blocks và JSON thừa
   const cleanTranslationText = (text) => {
     if (!text) return '';
 
-    // Loại bỏ markdown code blocks (```vietnamese, ```text, ```json, v.v.)
-    let cleaned = text.replace(/```[a-z]*\n?/gi, '');
+    let cleaned = text;
 
-    // Loại bỏ các dấu ``` còn sót lại
+    // Loại bỏ markdown code blocks (```vietnamese, ```text, ```json, v.v.)
+    cleaned = cleaned.replace(/```[a-z]*\n?/gi, '');
     cleaned = cleaned.replace(/```/g, '');
+
+    // Thử parse JSON nếu text có dạng JSON object
+    cleaned = cleaned.trim();
+    if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+      try {
+        const jsonObj = JSON.parse(cleaned);
+        // Tìm trường chứa nội dung dịch hoặc phân tích (cả camelCase và snake_case)
+        if (jsonObj.translation) {
+          cleaned = jsonObj.translation;
+        } else if (jsonObj.translated) {
+          cleaned = jsonObj.translated;
+        } else if (jsonObj.contextAnalysis) {
+          cleaned = jsonObj.contextAnalysis;
+        } else if (jsonObj.context_analysis) {
+          cleaned = jsonObj.context_analysis;
+        } else if (jsonObj.analysis) {
+          cleaned = jsonObj.analysis;
+        } else if (jsonObj.text) {
+          cleaned = jsonObj.text;
+        } else if (jsonObj.content) {
+          cleaned = jsonObj.content;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, giữ nguyên text
+      }
+    }
+
+    // Xử lý trường hợp có nhiều trường JSON trong response
+    // Ví dụ: {"translation": "...", "contextAnalysis": "..."}
+    // Loại bỏ các pattern JSON phổ biến bằng regex nếu vẫn còn (cả camelCase và snake_case)
+    cleaned = cleaned.replace(/^\s*\{\s*"(translation|translated|contextAnalysis|context_analysis|analysis|text|content)"\s*:\s*"/i, '');
+    cleaned = cleaned.replace(/"\s*\}\s*$/i, '');
+    cleaned = cleaned.replace(/",\s*"(contextAnalysis|context_analysis)"\s*:\s*"[^"]*"\s*\}$/i, '');
+
+    // Xử lý trường hợp text bắt đầu bằng key JSON không hoàn chỉnh (ví dụ: context_analysis": ")
+    cleaned = cleaned.replace(/^(context_analysis|contextAnalysis|translation|translated|analysis|text|content)"\s*:\s*"/i, '');
+
+    cleaned = cleaned.replace(/^\s*"/, '');
+    cleaned = cleaned.replace(/"\s*$/, '');
+
+    // Unescape các ký tự JSON
+    cleaned = cleaned.replace(/\\n/g, '\n');
+    cleaned = cleaned.replace(/\\"/g, '"');
+    cleaned = cleaned.replace(/\\\\/g, '\\');
 
     // Trim whitespace ở đầu và cuối
     cleaned = cleaned.trim();
@@ -120,10 +164,11 @@ function Translate() {
 
     try {
       setLoadingHistory(true);
-      const response = await translationAPI.getHistory();
+      const response = await translationAPI.getHistory(0, 10); // Lấy 10 bản ghi gần nhất
       console.log('History response:', response);
       console.log('History data:', response.data);
-      const historyData = Array.isArray(response.data) ? response.data : [];
+      // Paginated response có dạng { content: [...], totalPages, ... }
+      const historyData = response.data?.content || (Array.isArray(response.data) ? response.data : []);
       console.log('History array:', historyData);
       setHistory(historyData);
     } catch (error) {
@@ -188,9 +233,9 @@ function Translate() {
 
   const handleHistoryItemClick = (item) => {
     setJapaneseText(item.originalText || '');
-    setVietnameseText(item.translatedText || '');
+    setVietnameseText(cleanTranslationText(item.translatedText || ''));
     setContext(item.userContext || '');
-    setAnalysis(item.contextAnalysis || '');
+    setAnalysis(cleanTranslationText(item.contextAnalysis || ''));
     // Scroll to top để người dùng thấy nội dung đã được điền
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -357,7 +402,7 @@ function Translate() {
                         </div>
                         <div className="history-translated">
                           <span className="history-label">🇻🇳 VN:</span>
-                          <span className="history-text">{item.translatedText}</span>
+                          <span className="history-text">{cleanTranslationText(item.translatedText)}</span>
                         </div>
                         {item.userContext && (
                           <div className="history-context">

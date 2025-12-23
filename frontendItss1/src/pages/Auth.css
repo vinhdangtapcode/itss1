@@ -357,3 +357,35 @@
   width: 20px;
   height: 20px;
 }
+
+/* Dark Mode overrides for login links */
+[data-theme="dark"] .forgot-password-link,
+body.dark .forgot-password-link {
+  color: #4FD1C5 !important;
+}
+
+[data-theme="dark"] .forgot-password-link:hover,
+body.dark .forgot-password-link:hover {
+  color: #38B2AC !important;
+}
+
+[data-theme="dark"] .auth-link a,
+body.dark .auth-link a {
+  color: #4FD1C5 !important;
+}
+
+[data-theme="dark"] .auth-link a:hover,
+body.dark .auth-link a:hover {
+  color: #38B2AC !important;
+}
+
+/* Dark Mode button border */
+[data-theme="dark"] .btn-primary,
+body.dark .btn-primary {
+  border: 2px solid rgba(79, 209, 197, 0.5) !important;
+}
+
+[data-theme="dark"] .btn-primary:hover:not(:disabled),
+body.dark .btn-primary:hover:not(:disabled) {
+  border-color: rgba(79, 209, 197, 0.8) !important;
+}
