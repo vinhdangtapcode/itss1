@@ -58,12 +58,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+            .csrf(AbstractHttpConfigurer::disable)
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**", "/error").permitAll()
+                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error").permitAll()
                 .requestMatchers("/api/translate/**").authenticated()
                 .anyRequest().authenticated()
             )
@@ -71,7 +72,7 @@ public class SecurityConfig {
                 .authorizationEndpoint(authorization -> authorization
                     .baseUri("/oauth2/authorize"))
                 .redirectionEndpoint(redirection -> redirection
-                    .baseUri("/oauth2/callback/*"))
+                    .baseUri("/login/oauth2/callback/*"))
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService))
                 .successHandler(oAuth2AuthenticationSuccessHandler)
@@ -84,4 +85,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-

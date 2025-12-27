@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Tạo axios instance
 const api = axios.create({
@@ -65,6 +65,7 @@ export const authAPI = {
     api.post('/api/auth/login', { email, password }),
 
   googleLogin: () => {
+    sessionStorage.setItem('preLoginUrl', window.location.pathname);
     window.location.href = `${API_BASE_URL}/oauth2/authorize/google`;
   },
 
