@@ -75,6 +75,28 @@ const translations = {
         confirmPassword: 'Xác nhận mật khẩu',
         cancel: 'Hủy',
         save: 'Lưu',
+
+        // Login Error Messages
+        loginError: 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.',
+        emailNotExist: 'Email không tồn tại trong hệ thống.',
+        errorOccurred: 'Có lỗi xảy ra. Vui lòng thử lại.',
+        passwordMismatch: 'Mật khẩu mới và xác nhận mật khẩu không khớp.',
+        passwordMinLength: 'Mật khẩu phải có ít nhất 6 ký tự.',
+        resetPasswordSuccess: 'Đặt lại mật khẩu thành công!',
+
+        // Forgot Password Modal
+        forgotPasswordTitle: 'Quên mật khẩu',
+        close: 'Đóng',
+        enterYourEmail: 'Nhập email của bạn',
+        checking: 'Đang kiểm tra...',
+        continue: 'Tiếp tục',
+        newPasswordLabel: 'Mật khẩu mới',
+        enterNewPassword: 'Nhập mật khẩu mới',
+        confirmPasswordLabel: 'Xác nhận mật khẩu',
+        reenterNewPassword: 'Nhập lại mật khẩu mới',
+        goBack: 'Quay lại',
+        processing: 'Đang xử lý...',
+        resetPassword: 'Đặt lại mật khẩu',
     },
     ja: {
         // Header
@@ -147,6 +169,28 @@ const translations = {
         confirmPassword: 'パスワード確認',
         cancel: 'キャンセル',
         save: '保存',
+
+        // Login Error Messages
+        loginError: 'ログインに失敗しました。メールアドレスとパスワードを確認してください。',
+        emailNotExist: 'このメールアドレスは登録されていません。',
+        errorOccurred: 'エラーが発生しました。もう一度お試しください。',
+        passwordMismatch: '新しいパスワードと確認パスワードが一致しません。',
+        passwordMinLength: 'パスワードは6文字以上である必要があります。',
+        resetPasswordSuccess: 'パスワードのリセットが完了しました！',
+
+        // Forgot Password Modal
+        forgotPasswordTitle: 'パスワードを忘れた',
+        close: '閉じる',
+        enterYourEmail: 'メールアドレスを入力',
+        checking: '確認中...',
+        continue: '続ける',
+        newPasswordLabel: '新しいパスワード',
+        enterNewPassword: '新しいパスワードを入力',
+        confirmPasswordLabel: 'パスワード確認',
+        reenterNewPassword: '新しいパスワードを再入力',
+        goBack: '戻る',
+        processing: '処理中...',
+        resetPassword: 'パスワードをリセット',
     },
     en: {
         // Header
