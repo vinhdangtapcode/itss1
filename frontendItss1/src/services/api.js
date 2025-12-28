@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8081';
 
 // Tạo axios instance
 const api = axios.create({
@@ -34,14 +34,14 @@ api.interceptors.response.use(
       // KHÔNG redirect nếu đang login/signup (chưa có token)
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
-      
+
       // Chỉ redirect nếu cả token và user đều tồn tại (nghĩa là đã login trước đó)
       // Tránh redirect ngay sau khi login thành công
       if (token && user) {
         // Kiểm tra xem có phải là request từ trang translate không
         // Nếu là request từ translate và bị 401, có thể là token chưa được set đúng
         const currentPath = window.location.pathname;
-        
+
         // Chỉ redirect nếu không phải đang ở trang login/signup
         if (currentPath !== '/login' && currentPath !== '/signup') {
           // Token hết hạn -> xóa và redirect
@@ -87,8 +87,8 @@ export const translationAPI = {
   translate: (text, context) =>
     api.post('/api/translate', { text, context }),
 
-  getHistory: () =>
-    api.get('/api/translate/history/all'),
+  getHistory: (page = 0, size = 10) =>
+    api.get(`/api/translate/history?page=${page}&size=${size}`),
 };
 
 export default api;

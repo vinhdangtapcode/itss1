@@ -70,10 +70,17 @@
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
 
-        <!-- PostgreSQL Driver -->
+        <!-- PostgreSQL Driver
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency> -->
+
+        <!-- Thêm MySQL -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
 
