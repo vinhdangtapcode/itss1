@@ -1,7 +1,6 @@
 package com.hust.itss1.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +16,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email
     @NotBlank
     @Column(unique = true, nullable = false)
     private String email;
@@ -29,4 +27,3 @@ public class User {
     @Column(name = "provider_id")
     private String providerId;
 }
-
