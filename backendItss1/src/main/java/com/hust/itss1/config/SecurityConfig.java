@@ -3,15 +3,17 @@ package com.hust.itss1.config;
 import com.hust.itss1.security.JwtAuthenticationEntryPoint;
 import com.hust.itss1.security.JwtAuthenticationFilter;
 import com.hust.itss1.security.oauth2.CustomOAuth2UserService;
-import com.hust.itss1.security.oauth2.OAuth2AuthenticationFailureHandler;
+
 import com.hust.itss1.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.hust.itss1.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.hust.itss1.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,6 +28,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -40,25 +44,19 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
-    // =========================
-    // JWT FILTER
-    // =========================
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
 
-    // =========================
-    // PASSWORD ENCODER
-    // =========================
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // =========================
-    // AUTH PROVIDER
-    // =========================
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -67,90 +65,63 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    // =========================
-    // AUTH MANAGER
-    // =========================
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authConfig) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    // =========================
-    // SECURITY FILTER CHAIN
-    // =========================
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Parse allowed origins
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
+
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "https://*.vercel.app",
+            "http://localhost:*"
+        ));
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        http
-            // ⭐ CORS do Spring Security quản lý
-            .cors(Customizer.withDefaults())
-
-            // ⭐ JWT → không cần CSRF
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
-
-            // ⭐ Không dùng session
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-
-            // ⭐ Exception 401
-            .exceptionHandling(exception ->
-                exception.authenticationEntryPoint(unauthorizedHandler)
-            )
-
-            // ⭐ Phân quyền
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/api/auth/**",
-                        "/oauth2/**",
-                        "/error"
-                ).permitAll()
+                // CHO PHÉP TẤT CẢ OPTIONS REQUESTS (CORS Preflight)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Các endpoints public
+                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error").permitAll()
+                // Các endpoints cần authentication
                 .requestMatchers("/api/translate/**").authenticated()
                 .anyRequest().authenticated()
             )
-
-            // ⭐ OAuth2
             .oauth2Login(oauth2 -> oauth2
-                .authorizationEndpoint(authorization ->
-                    authorization.baseUri("/oauth2/authorize"))
-                .redirectionEndpoint(redirection ->
-                    redirection.baseUri("/oauth2/callback/*"))
-                .userInfoEndpoint(userInfo ->
-                    userInfo.userService(customOAuth2UserService))
+                .authorizationEndpoint(authorization -> authorization
+                    .baseUri("/oauth2/authorization"))
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService))
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler)
             );
 
         http.authenticationProvider(authenticationProvider());
 
-        http.addFilterBefore(
-                jwtAuthenticationFilter(),
-                UsernamePasswordAuthenticationFilter.class
-        );
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    // =========================
-    // CORS CONFIG (QUAN TRỌNG)
-    // =========================
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration config = new CorsConfiguration();
-
-        // 👉 JWT trong Authorization header → KHÔNG cần credentials
-        config.setAllowedOrigins(List.of("*"));
-        config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
-        ));
-        config.setAllowedHeaders(List.of("*"));
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
     }
 }

@@ -17,9 +17,11 @@ import java.time.LocalDateTime;
 public class TranslationHistoryCleanupScheduler {
     private final TranslationHistoryService translationHistoryService;
 
+
     // Đơn vị: giây (30 giây mặc định để demo, production nên đặt 2592000 = 30 ngày)
     @Value("${app.translation-history.retention-seconds:300}")
     private int retentionSeconds;
+
 
     @Value("${app.translation-history.cleanup-batch-size:1000}")
     private int batchSize;
@@ -32,6 +34,7 @@ public class TranslationHistoryCleanupScheduler {
         log.info("Bắt đầu scheduled job xóa lịch sử dịch cũ hơn {} giây", retentionSeconds);
 
         LocalDateTime cutoff = LocalDateTime.now().minusSeconds(retentionSeconds);
+
         long deletedCount = translationHistoryService.deleteOldTranslationHistories(cutoff, batchSize);
 
         log.info("Scheduled job hoàn thành: đã xóa {} bản ghi lịch sử dịch", deletedCount);

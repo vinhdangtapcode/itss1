@@ -149,6 +149,7 @@ function Translate() {
     cleaned = cleaned.replace(/\\"/g, '"');
     cleaned = cleaned.replace(/\\\\/g, '\\');
 
+
     // Trim whitespace ở đầu và cuối
     cleaned = cleaned.trim();
 
@@ -169,6 +170,7 @@ function Translate() {
       console.log('History data:', response.data);
       // Paginated response có dạng { content: [...], totalPages, ... }
       const historyData = response.data?.content || (Array.isArray(response.data) ? response.data : []);
+
       console.log('History array:', historyData);
       setHistory(historyData);
     } catch (error) {
@@ -236,6 +238,7 @@ function Translate() {
     setVietnameseText(cleanTranslationText(item.translatedText || ''));
     setContext(item.userContext || '');
     setAnalysis(cleanTranslationText(item.contextAnalysis || ''));
+
     // Scroll to top để người dùng thấy nội dung đã được điền
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -403,6 +406,7 @@ function Translate() {
                         <div className="history-translated">
                           <span className="history-label">🇻🇳 VN:</span>
                           <span className="history-text">{cleanTranslationText(item.translatedText)}</span>
+
                         </div>
                         {item.userContext && (
                           <div className="history-context">

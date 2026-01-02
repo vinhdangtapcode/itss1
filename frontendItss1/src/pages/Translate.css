@@ -117,6 +117,7 @@
   gap: 16px;
   overflow: hidden;
   max-width: 100%;
+
 }
 
 .input-field {
@@ -136,6 +137,7 @@
 .textarea-output {
   width: 100%;
   max-width: 100%;
+
   padding: 12px;
   border: 1px solid var(--border-input);
   border-radius: 8px;
@@ -146,6 +148,8 @@
   min-width: 200px;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
+
+
   background: var(--bg-primary);
   color: var(--text-primary);
 }
@@ -285,6 +289,7 @@
 
 @media (max-width: 1023px) {
   .header-content {
+
     padding: 16px;
     gap: 8px;
   }
@@ -295,6 +300,7 @@
     justify-content: flex-end;
     gap: 8px;
   }
+
   .translator-grid {
     grid-template-columns: 1fr;
     gap: 16px;

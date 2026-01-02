@@ -51,6 +51,7 @@ function Login() {
       }, 100);
     } catch (err) {
       setError(err.response?.data?.message || t('loginError'));
+
     } finally {
       setLoading(false);
     }
@@ -80,6 +81,7 @@ function Login() {
       }
     } catch (err) {
       setForgotPasswordMessage(err.response?.data?.message || t('errorOccurred'));
+
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -90,11 +92,14 @@ function Login() {
 
     if (newPassword !== confirmPassword) {
       setForgotPasswordMessage(t('passwordMismatch'));
+
       return;
     }
 
     if (newPassword.length < 6) {
+
       setForgotPasswordMessage(t('passwordMinLength'));
+
       return;
     }
 
@@ -104,6 +109,7 @@ function Login() {
     try {
       const response = await authAPI.resetPassword(forgotPasswordEmail, newPassword, confirmPassword);
       setForgotPasswordMessage(response.data.message || t('resetPasswordSuccess'));
+
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => {
@@ -114,6 +120,7 @@ function Login() {
       }, 2000);
     } catch (err) {
       setForgotPasswordMessage(err.response?.data?.message || t('errorOccurred'));
+
     } finally {
       setResetPasswordLoading(false);
     }
@@ -208,6 +215,7 @@ function Login() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('forgotPasswordTitle')}</h2>
+
               <button
                 className="modal-close-btn"
                 onClick={() => {
@@ -219,6 +227,7 @@ function Login() {
                   setConfirmPassword('');
                 }}
                 aria-label={t('close')}
+
               >
                 ×
               </button>
@@ -233,6 +242,7 @@ function Login() {
                     value={forgotPasswordEmail}
                     onChange={(e) => setForgotPasswordEmail(e.target.value)}
                     placeholder={t('enterYourEmail')}
+
                     required
                     disabled={forgotPasswordLoading}
                   />
@@ -244,30 +254,37 @@ function Login() {
                 )}
                 <button type="submit" className="btn-primary" disabled={forgotPasswordLoading}>
                   {forgotPasswordLoading ? t('checking') : t('continue')}
+
                 </button>
               </form>
             ) : (
               <form onSubmit={handleResetPassword}>
                 <div className="form-group">
                   <label htmlFor="new-password">{t('newPasswordLabel')}</label>
+
                   <input
                     type="password"
                     id="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+
                     placeholder={t('enterNewPassword')}
+
                     required
                     disabled={resetPasswordLoading}
                   />
                 </div>
                 <div className="form-group">
+
                   <label htmlFor="confirm-password">{t('confirmPasswordLabel')}</label>
+
                   <input
                     type="password"
                     id="confirm-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder={t('reenterNewPassword')}
+
                     required
                     disabled={resetPasswordLoading}
                   />
@@ -293,6 +310,7 @@ function Login() {
                   </button>
                   <button type="submit" className="btn-primary" disabled={resetPasswordLoading}>
                     {resetPasswordLoading ? t('processing') : t('resetPassword')}
+
                   </button>
                 </div>
               </form>

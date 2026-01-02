@@ -1,0 +1,8 @@
+.mvn/
+*.iml
+.idea/
+.git/
+*.log
+*.class
+node_modules/
+.env

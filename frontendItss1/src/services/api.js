@@ -1,7 +1,8 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'https://translate-production-6a99.up.railway.app';
+// const API_BASE_URL = 'http://localhost:8080';
 
 // Tạo axios instance
 const api = axios.create({
@@ -41,7 +42,6 @@ api.interceptors.response.use(
         // Kiểm tra xem có phải là request từ trang translate không
         // Nếu là request từ translate và bị 401, có thể là token chưa được set đúng
         const currentPath = window.location.pathname;
-
         // Chỉ redirect nếu không phải đang ở trang login/signup
         if (currentPath !== '/login' && currentPath !== '/signup') {
           // Token hết hạn -> xóa và redirect
@@ -65,15 +65,11 @@ export const authAPI = {
     api.post('/api/auth/login', { email, password }),
 
   googleLogin: () => {
-    const BACKEND_URL = 'https://jennefer-gearless-bettyann.ngrok-free.dev';
-    const FRONTEND_URL = 'http://localhost:3000';
-    window.location.href = `${BACKEND_URL}/oauth2/authorize/google?redirect_uri=${FRONTEND_URL}/oauth2/redirect`;
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
   },
 
   facebookLogin: () => {
-    const BACKEND_URL = 'https://jennefer-gearless-bettyann.ngrok-free.dev';
-    const FRONTEND_URL = 'http://localhost:3000';
-    window.location.href = `${BACKEND_URL}/oauth2/authorize/facebook?redirect_uri=${FRONTEND_URL}/oauth2/redirect`;
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/facebook`;
   },
 
   checkEmail: (email) =>
@@ -91,8 +87,10 @@ export const translationAPI = {
   translate: (text, context) =>
     api.post('/api/translate', { text, context }),
 
-  getHistory: (page = 0, size = 10) =>
-    api.get(`/api/translate/history?page=${page}&size=${size}`),
+
+  getHistory: () =>
+    api.get('/api/translate/history/all'),
+
 };
 
 export default api;
